@@ -1,4 +1,4 @@
-from pdf_reader import extract_text, extract_pages
+from pdf_reader import extract_pages
 
 def split_text(text, chunk_size=500, overlap=100):
     if chunk_size <= 0:
@@ -30,30 +30,59 @@ def split_pages(pages, filename, chunk_size=500, overlap=100):
     chunks = []
     chunk_id = 0
 
-    step = chunk_size - overlap
-
     for page in pages:
         page_text = page["text"]
         page_number = page["page"]
+        start = 0
 
-        for start in range(0, len(page_text), step):
-            end = start + chunk_size
-            fragment = page_text[start:end]     
+        while start < len(page_text):
+            end = min(start + chunk_size, len(page_text))
+
+            # Szukamy granicy zdania
+            if end < len(page_text):
+                dot = page_text.rfind(".", start, end)
+                question = page_text.rfind("?", start, end)
+                exclamation = page_text.rfind("!", start, end)
+
+                boundary = max(dot, question, exclamation)
+
+                # eliminujemy krotkie zdania
+                if boundary >= start + chunk_size // 2:
+                    end = boundary + 1
+
+            fragment = page_text[start:end].strip()
+
+            if fragment:
+                chunk_id += 1
             
-            chunk_id += 1
-
-            chunk = {
-                "document": filename,
-                "page": page_number,
-                "chunk_id": chunk_id,
-                "text": fragment
-            }
-
-            chunks.append(chunk)
+                chunk = {
+                    "document": filename,
+                    "page": page_number,
+                    "chunk_id": chunk_id,
+                    "text": fragment
+                }
+            
+                chunks.append(chunk)
 
             if end >= len(page_text):
                 break
 
+            next_start = max(start + 1, end - overlap)
+
+            # Jeśli trafiliśmy w środek słowa, cofamy się do jego początku
+            if (
+                next_start > 0
+                and next_start < len(page_text)
+                and not page_text[next_start - 1].isspace()
+                and not page_text[next_start].isspace()
+            ):
+                for i in range(next_start - 1, start - 1, -1):
+                    if page_text[i].isspace():
+                        next_start = i + 1
+                        break
+            next_start = max(start + 1, next_start)                
+            start = next_start
+                    
     return chunks
 
 if __name__ == "__main__":
@@ -63,8 +92,9 @@ if __name__ == "__main__":
     print(f"Liczba stron: {len(pages)}")
     print(f"Liczba fragmentów: {len(chunks)}")
 
-    for chunk in chunks[:3]:
-        print(f"\nDokument: {chunk['document']}")
+    for chunk in chunks[:5]:
+        print(f"\nCHUNK {chunk['chunk_id']}")
+        print(f"Długość: {len(chunk['text'])}")
         print(f"Strona: {chunk['page']}")
-        print(f"Fragment: {chunk['chunk_id']}")
-        print(f"Tekst: {chunk['text'][:100]}")
+        print(chunk["text"])
+        print("-" * 60)
