@@ -66,10 +66,32 @@ def clean_text(text):
     return text.strip()
 
 if __name__ == "__main__":
-    pages = extract_pages("data/materialy01.pdf")
+    query = "Jak obliczyć prędkość chwilową?"
 
-    print(f"Liczba stron: {len(pages)}")
+    test_context = """
+[Źródło 1: test_definition.pdf, strona 1]
+Prędkość chwilowa jest pochodną położenia
+względem czasu: v(t) = dx(t)/dt.
+Przyspieszenie jest pochodną prędkości
+względem czasu: a(t) = dv(t)/dt.
+"""
 
-    if pages:
-        print(f"Numer strony: {pages[0]['page']}")
-        print(pages[0]["text"][:1000]) 
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {
+            "role": "user",
+            "content": build_user_prompt(query, test_context)
+        }
+    ]
+
+    from ollama import Client
+
+    client = Client(host="http://localhost:11434")
+
+    response = client.chat(
+        model="llama3.2",
+        messages=messages,
+        options={"temperature": 0}
+    )
+
+    print(response["message"]["content"])
