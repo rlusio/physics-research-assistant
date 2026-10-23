@@ -1,25 +1,10 @@
-# Python virtual environment
 .venv/
-
-# Python cache
+.env
 __pycache__/
 *.pyc
 
-# Environment variables and secrets
-.env
-.env.*
-!.env.example
-
-# PDF documents
 data/
-
-# Local vector database
 chroma_db/
+model_cache/
 
-# IDE files
-.vscode/
-.idea/
-
-# OS files
-.DS_Store
-Thumbs.db
+.streamlit/secrets.toml

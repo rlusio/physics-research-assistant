@@ -1,0 +1,39 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+      HF_HOME: /app/model_cache
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+      - huggingface_data:/app/model_cache
+    depends_on:
+      - ollama
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "127.0.0.1:8501:8501"
+    environment:
+      API_URL: http://backend:8000
+    depends_on:
+      - backend
+
+  ollama:
+    image: ollama/ollama:latest
+    environment:
+      OLLAMA_LLM_LIBRARY: cpu
+      CUDA_VISIBLE_DEVICES: "-1"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  ollama_data:
+  huggingface_data:

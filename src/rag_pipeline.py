@@ -1,5 +1,6 @@
 from database_search import search_database
 from ollama import Client
+import os
 
 def build_context(matches):
     context_parts = []
@@ -99,7 +100,9 @@ względem czasu: a(t) = dv(t)/dt.
         }
     ]
 
-    client = Client(host="http://localhost:11434")
+    client = ollama.Client(
+    host=os.getenv("OLLAMA_HOST", "http://localhost:11434")
+    )
 
     response = client.chat(
         model="llama3.2",
