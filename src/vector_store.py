@@ -1,11 +1,10 @@
-import hashlib
 import chromadb
-from pdf_reader import extract_pages
-from chunking import split_pages
-from embeddings import generate_embeddings
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "chroma_db"
 
-client = chromadb.PersistentClient(path="./chroma_db")
+client = chromadb.PersistentClient(path=str(DB_PATH))
 
 collection = client.get_or_create_collection(
     name="physics_documents",
@@ -13,9 +12,27 @@ collection = client.get_or_create_collection(
 )
 
 
-def add_chunks(collection, chunks, embeddings):
+def document_exists(collection, document_id):
+    results = collection.get(
+        where={"document_id": document_id},
+        limit=1
+    )
+
+    return len(results["ids"]) > 0
+
+def delete_document(collection, document_id):
+    results = collection.get(
+        where={"document_id": document_id}
+    )
+
+    if results["ids"]:
+        collection.delete(ids=results["ids"])
+
+def add_chunks(collection, chunks, embeddings, document_id):
     if len(chunks) != len(embeddings):
-        raise ValueError("Liczba fragmentów i embeddingów musi być taka sama")
+        raise ValueError(
+            "Liczba fragmentów i embeddingów musi być taka sama"
+        )
 
     if not chunks:
         return
@@ -25,16 +42,13 @@ def add_chunks(collection, chunks, embeddings):
     metadatas = []
 
     for chunk in chunks:
-        document_id = hashlib.sha256(
-            chunk["document"].encode("utf-8")
-        ).hexdigest()[:16]
-
         record_id = f"{document_id}_{chunk['chunk_id']}"
 
         ids.append(record_id)
         documents.append(chunk["text"])
 
         metadata = {
+            "document_id": document_id,
             "document": chunk["document"],
             "page": chunk["page"],
             "chunk_id": chunk["chunk_id"]
@@ -49,14 +63,4 @@ def add_chunks(collection, chunks, embeddings):
         embeddings=embeddings.tolist()
     )
 
-
-if __name__ == "__main__":
-    pages = extract_pages("data/materialy01.pdf")
-    chunks = split_pages(pages, "materialy01.pdf")
-    texts = [chunk["text"] for chunk in chunks]
-
-    if texts:
-        embeddings = generate_embeddings(texts)
-        add_chunks(collection, chunks, embeddings)
-
-    print(f"Liczba rekordów w bazie: {collection.count()}")
+    
