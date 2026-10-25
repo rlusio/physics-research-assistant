@@ -3,12 +3,12 @@ from pydantic import BaseModel, Field, field_validator
 from rag_pipeline import generate_answer
 from fastapi import UploadFile, File, HTTPException
 from pathlib import Path
-from uuid import uuid4
 import traceback
 from pdf_reader import extract_pages
 from chunking import split_pages
 from embeddings import generate_embeddings
-from vector_store import collection, add_chunks
+from vector_store import collection, add_chunks, document_exists, delete_document
+import hashlib
 
 app = FastAPI(title="Physics Research Assistant")
 
@@ -39,14 +39,11 @@ def ask_question(request: QuestionRequest):
 @app.post("/upload")
 def upload_pdf(file: UploadFile = File(...)):
 
-    # 1. Walidacja nazwy pliku
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(
             status_code=400,
             detail="Dozwolone są tylko pliki PDF."
         )
-
-    # 2. Odczyt pliku z limitem 10 MB
     max_size = 10 * 1024 * 1024
     content = file.file.read(max_size + 1)
 
@@ -61,41 +58,43 @@ def upload_pdf(file: UploadFile = File(...)):
             status_code=400,
             detail="Niepoprawny format PDF."
         )
-
-    # 3. Przygotowanie folderu
+    
     data_dir = Path(__file__).resolve().parent.parent / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
 
-    filename = f"{uuid4().hex}.pdf"
-    file_path = data_dir / filename
+    document_id = hashlib.sha256(content).hexdigest()
+    file_path = data_dir / f"{document_id}.pdf"
 
-    # 4. Zapis na dysku
-    file_path.write_bytes(content)
+    if document_exists(collection, document_id):
+        return {
+            "message": "Ten dokument został już zaindeksowany.",
+            "document_id": document_id,
+            "status": "already_exists"
+        }
+
+    file_path.write_bytes(content)  
 
     try:
-        # 5. Odczyt PDF
         pages = extract_pages(str(file_path))
-
-        # 6. Podział na fragmenty
-        chunks = split_pages(pages, filename)
+        chunks = split_pages(pages, file.filename)
 
         if not chunks:
             raise HTTPException(
                 status_code=422,
                 detail="Nie udało się wydobyć tekstu z PDF."
             )
-
-        # 7. Przygotowanie tekstów
+        
         texts = [chunk["text"] for chunk in chunks]
-
-        # 8. Generowanie embeddingów
         embeddings = generate_embeddings(texts)
-
-        # 9. Zapis do ChromaDB
-        add_chunks(collection, chunks, embeddings)
+        add_chunks(collection, chunks, embeddings, document_id)
 
     except Exception as exc:
         traceback.print_exc()
+
+        try:
+            delete_document(collection, document_id)
+        except Exception:
+            traceback.print_exc()
 
         file_path.unlink(missing_ok=True)
 
@@ -110,6 +109,7 @@ def upload_pdf(file: UploadFile = File(...)):
     return {
         "message": "Dokument został przetworzony",
         "filename": file.filename,
+        "document_id": document_id,
         "pages": len(pages),
         "chunks": len(chunks),
         "status": "success"
