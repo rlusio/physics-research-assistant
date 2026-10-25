@@ -16,7 +16,6 @@ def split_pages(pages, filename, chunk_size=500, overlap=100):
         while start < len(page_text):
             end = min(start + chunk_size, len(page_text))
 
-            # Szukamy granicy zdania
             if end < len(page_text):
                 dot = page_text.rfind(".", start, end)
                 question = page_text.rfind("?", start, end)
@@ -24,7 +23,6 @@ def split_pages(pages, filename, chunk_size=500, overlap=100):
 
                 boundary = max(dot, question, exclamation)
 
-                # eliminujemy krotkie zdania
                 if boundary >= start + chunk_size // 2:
                     end = boundary + 1
 
@@ -47,7 +45,6 @@ def split_pages(pages, filename, chunk_size=500, overlap=100):
 
             next_start = max(start + 1, end - overlap)
 
-            # Jeśli trafiliśmy w środek słowa, cofamy się do jego początku
             if (
                 next_start > 0
                 and next_start < len(page_text)
@@ -58,6 +55,7 @@ def split_pages(pages, filename, chunk_size=500, overlap=100):
                     if page_text[i].isspace():
                         next_start = i + 1
                         break
+                    
             next_start = max(start + 1, next_start)                
             start = next_start
                     

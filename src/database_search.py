@@ -1,15 +1,14 @@
 from vector_store import collection
-from embeddings import model
-print("Rekordy widoczne w database_search:", collection.count())
+from embeddings import generate_embeddings
 
 def search_database(query, top_k=3):
     if not query.strip() or top_k <= 0:
         return []
-
-    query_embedding = model.encode(query)
-
+    
     if collection.count() == 0:
         return []
+
+    query_embedding = generate_embeddings([query])[0]
     
     results = collection.query(
         query_embeddings=[query_embedding.tolist()],
@@ -33,17 +32,3 @@ def search_database(query, top_k=3):
 
     return results_dict
 
-
-if __name__ == "__main__":
-    query = "Jak obliczyć prędkość chwilową?"
-    results = search_database(query)
-
-    if results:
-        for result in results:
-            print(f"\nDokument: {result['document']}")
-            print(f"Strona PDF: {result['page']}")
-            print(f"Odległość: {result['distance']:.4f}")
-            print(result["text"][:500])
-            print("-" * 60)
-    else:
-        print("Brak wyników.")

@@ -1,21 +1,11 @@
-from sentence_transformers import SentenceTransformer, util
-from chunking import split_pages
-from pdf_reader import extract_pages
+from sentence_transformers import SentenceTransformer
+from functools import lru_cache
 
-model = SentenceTransformer(
-    "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-)
+@lru_cache(maxsize=1)
+def get_model():
+    return SentenceTransformer(
+        "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    )
 
-def generate_embeddings(chunks):
-    embeddings = model.encode(chunks)
-    return embeddings
-
-if __name__ == "__main__":
-    pages = extract_pages("data/materialy01.pdf")
-    chunks = split_pages(pages, "materialy01.pdf")
-    texts = [chunk["text"] for chunk in chunks]
-
-    embeddings = generate_embeddings(texts)
-
-    print(f"Liczba fragmentów: {len(chunks)}")
-    print(f"Kształt macierzy: {embeddings.shape}")
+def generate_embeddings(texts):
+    return get_model().encode(texts)

@@ -67,7 +67,10 @@ def generate_answer(query, top_k=3):
     matches = search_database(query, top_k=top_k)
 
     if not matches:
-        return "Nie znaleziono fragmentów w dokumentach."
+        return {
+            "answer": "Nie znaleziono fragmentów w dokumentach.",
+            "sources": []
+        }
 
     messages = build_messages(query, matches)
 
@@ -81,4 +84,17 @@ def generate_answer(query, top_k=3):
         options={"temperature": 0.2}
     )
 
-    return response["message"]["content"]
+    sources = [
+        {
+            "document": match["document"],
+            "page": match["page"],
+            "text": match["text"],
+            "distance": match["distance"]
+        }
+        for match in matches
+    ]
+
+    return {
+        "answer": response["message"]["content"],
+        "sources": sources
+    }

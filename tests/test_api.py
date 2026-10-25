@@ -21,7 +21,10 @@ def test_health():
 
 def test_ask_success():
     with patch("api.generate_answer") as mock_generate:
-        mock_generate.return_value = "Energia nie powstaje ani nie ginie."
+        mock_generate.return_value = {
+            "answer": "Energia nie powstaje ani nie ginie.",
+            "sources": []
+        }
 
         client = TestClient(app)
 
@@ -32,7 +35,8 @@ def test_ask_success():
 
         assert response.status_code == 200
         assert response.json() == {
-            "answer": "Energia nie powstaje ani nie ginie."
+            "answer": "Energia nie powstaje ani nie ginie.",
+            "sources": []
         }
 
         mock_generate.assert_called_once_with(

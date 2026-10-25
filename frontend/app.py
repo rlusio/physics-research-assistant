@@ -62,6 +62,20 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
+        if message["role"] == "assistant":
+            sources = message.get("sources", [])
+
+            if sources:
+                with st.expander("📚 Sources"):
+                    for i, source in enumerate(sources, start=1):
+                        st.markdown(
+                            f"**Source {i}: {source['document']} "
+                            f"— page {source['page']}**"
+                        )
+
+                        st.write(source["text"])
+                        st.divider()
+                        
 question = st.chat_input("Ask a question about your PDFs...")
 
 if question:
@@ -83,12 +97,26 @@ if question:
                 )
                 response.raise_for_status()
 
-                answer = response.json()["answer"]
-                st.markdown(answer)
+                result = response.json()
 
+                answer = result["answer"]
+                sources = result.get("sources", [])
+
+                st.markdown(answer)
+                if sources:
+                    with st.expander("📚 Sources"):
+                        for i, source in enumerate(sources, start=1):
+                            st.markdown(
+                                f"**Source {i}: {source['document']} "
+                                f"— page {source['page']}**"
+                            )
+
+                            st.write(source["text"])
+                            st.divider()
                 st.session_state.messages.append({
                     "role": "assistant",
-                    "content": answer
+                    "content": answer,
+                    "sources": sources
                 })
 
             except requests.RequestException as error:

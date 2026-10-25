@@ -3,13 +3,14 @@ from pydantic import BaseModel, Field, field_validator
 from rag_pipeline import generate_answer
 from fastapi import UploadFile, File, HTTPException
 from pathlib import Path
-import traceback
+import logging
 from pdf_reader import extract_pages
 from chunking import split_pages
 from embeddings import generate_embeddings
 from vector_store import collection, add_chunks, document_exists, delete_document
 import hashlib
 
+logger = logging.getLogger(__name__)
 app = FastAPI(title="Physics Research Assistant")
 
 class QuestionRequest(BaseModel):
@@ -31,10 +32,7 @@ def health_check():
 
 @app.post("/ask")
 def ask_question(request: QuestionRequest):
-    question = request.question
-    answer = generate_answer(question)
-
-    return {"answer": answer}
+    return generate_answer(request.question)
 
 @app.post("/upload")
 def upload_pdf(file: UploadFile = File(...)):
@@ -72,9 +70,8 @@ def upload_pdf(file: UploadFile = File(...)):
             "status": "already_exists"
         }
 
-    file_path.write_bytes(content)  
-
     try:
+        file_path.write_bytes(content)  
         pages = extract_pages(str(file_path))
         chunks = split_pages(pages, file.filename)
 
@@ -89,13 +86,15 @@ def upload_pdf(file: UploadFile = File(...)):
         add_chunks(collection, chunks, embeddings, document_id)
 
     except Exception as exc:
-        traceback.print_exc()
+        logger.exception("Błąd podczas przetwarzania PDF: %s", document_id)
 
         try:
             delete_document(collection, document_id)
         except Exception:
-            traceback.print_exc()
-
+            logger.exception(
+                "Nie udało się wyczyścić dokumentu z ChromaDB: %s",
+                document_id
+            )
         file_path.unlink(missing_ok=True)
 
         if isinstance(exc, HTTPException):
@@ -105,7 +104,7 @@ def upload_pdf(file: UploadFile = File(...)):
             status_code=500,
             detail="Nie udało się przetworzyć dokumentu."
         ) from exc
-
+    
     return {
         "message": "Dokument został przetworzony",
         "filename": file.filename,
