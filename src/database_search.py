@@ -35,8 +35,6 @@ def search_database(query, top_k=3):
 
 
 if __name__ == "__main__":
-    print("Rekordy w bazie:", collection.count())
-
     query = "Jak obliczyć prędkość chwilową?"
     results = search_database(query)
 

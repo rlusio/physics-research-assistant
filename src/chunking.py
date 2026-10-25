@@ -1,25 +1,3 @@
-from pdf_reader import extract_pages
-
-def split_text(text, chunk_size=500, overlap=100):
-    if chunk_size <= 0:
-        raise ValueError("chunk_size musi być większe od 0")
-
-    if not 0 <= overlap < chunk_size:
-        raise ValueError("overlap musi być mniejszy od chunk_size")
-
-    fragments = []
-    step = chunk_size - overlap
-    
-    for start in range(0, len(text), step):
-        end = start + chunk_size
-        fragment = text[start:end]
-        fragments.append(fragment)
-
-        if end >= len(text):
-            break
-
-    return fragments
-
 def split_pages(pages, filename, chunk_size=500, overlap=100):
     if chunk_size <= 0:
         raise ValueError("chunk_size musi być większy od 0")
@@ -84,17 +62,3 @@ def split_pages(pages, filename, chunk_size=500, overlap=100):
             start = next_start
                     
     return chunks
-
-if __name__ == "__main__":
-    pages = extract_pages("data/materialy01.pdf")
-    chunks = split_pages(pages, "materialy01.pdf")
-
-    print(f"Liczba stron: {len(pages)}")
-    print(f"Liczba fragmentów: {len(chunks)}")
-
-    for chunk in chunks[:5]:
-        print(f"\nCHUNK {chunk['chunk_id']}")
-        print(f"Długość: {len(chunk['text'])}")
-        print(f"Strona: {chunk['page']}")
-        print(chunk["text"])
-        print("-" * 60)

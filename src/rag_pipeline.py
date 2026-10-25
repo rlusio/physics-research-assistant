@@ -71,7 +71,9 @@ def generate_answer(query, top_k=3):
 
     messages = build_messages(query, matches)
 
-    client = Client(host="http://localhost:11434")
+    client = Client(
+        host=os.getenv("OLLAMA_URL", "http://localhost:11434")
+    )
 
     response = client.chat(
         model="llama3.2",
@@ -80,34 +82,3 @@ def generate_answer(query, top_k=3):
     )
 
     return response["message"]["content"]
-
-if __name__ == "__main__":
-    query = "Jak obliczyć prędkość chwilową?"
-
-    test_context = """
-[Źródło 1: test_definition.pdf, strona 1]
-Prędkość chwilowa jest pochodną położenia
-względem czasu: v(t) = dx(t)/dt.
-Przyspieszenie jest pochodną prędkości
-względem czasu: a(t) = dv(t)/dt.
-"""
-
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": build_user_prompt(query, test_context)
-        }
-    ]
-
-    client = ollama.Client(
-    host=os.getenv("OLLAMA_HOST", "http://localhost:11434")
-    )
-
-    response = client.chat(
-        model="llama3.2",
-        messages=messages,
-        options={"temperature": 0}
-    )
-
-    print(response["message"]["content"])

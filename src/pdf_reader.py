@@ -1,31 +1,5 @@
-import pymupdf
+﻿import pymupdf
 import re
-
-#def extract_text(pdf_path):
-#    try:
-#        with pymupdf.open(pdf_path) as doc:
-#            if doc.page_count == 0:
-#                return ""
-#            
-#            text = []
-#            for page in doc:
-#                page_text = page.get_text()
-#                text.append(page_text)
-#
-#            text_dict = dict(enumerate(text, start=1))
-#            return text_dict
-#
-#    except pymupdf.FileNotFoundError:
-#        print("Plik nie istnieje.")
-#        return ""
-#    
-#    except pymupdf.EmptyFileError:
-#        print("Plik jest pusty — ma 0 bajtów.")
-#        return ""
-#    except pymupdf.FileDataError:
-#        print("Plik jest uszkodzony lub ma nieprawidłowy format.")
-#        return ""
-    
 
 def extract_pages(pdf_path):
     pages = []
@@ -64,34 +38,3 @@ def clean_text(text):
     text = re.sub(r"(?<!\n)\n(?!\n)", " ", text) # entery na spacje zamieniamy jeśli jeśli za i przed nie ma entera zachowujac przerwy miedzy akapitami
 
     return text.strip()
-
-if __name__ == "__main__":
-    query = "Jak obliczyć prędkość chwilową?"
-
-    test_context = """
-[Źródło 1: test_definition.pdf, strona 1]
-Prędkość chwilowa jest pochodną położenia
-względem czasu: v(t) = dx(t)/dt.
-Przyspieszenie jest pochodną prędkości
-względem czasu: a(t) = dv(t)/dt.
-"""
-
-    messages = [
-        {"role": "system", "content": SYSTEM_PROMPT},
-        {
-            "role": "user",
-            "content": build_user_prompt(query, test_context)
-        }
-    ]
-
-    from ollama import Client
-
-    client = Client(host="http://localhost:11434")
-
-    response = client.chat(
-        model="llama3.2",
-        messages=messages,
-        options={"temperature": 0}
-    )
-
-    print(response["message"]["content"])

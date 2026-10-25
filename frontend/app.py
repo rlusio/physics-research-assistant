@@ -14,12 +14,9 @@ st.set_page_config(
 st.title("🔬 Physics Research Assistant")
 st.caption("Ask questions about your scientific documents.")
 
-# Historia czatu przechowywana w bieżącej sesji Streamlit
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-
-# PANEL BOCZNY
 with st.sidebar:
     st.header("Documents")
 
@@ -46,22 +43,25 @@ with st.sidebar:
 
                 result = response.json()
 
-                st.success(
-                    f"Indexed {result['pages']} pages "
-                    f"and {result['chunks']} chunks."
-                )
+                if result["status"] == "already_exists":
+                    st.info("This document has already been indexed.")
+
+                elif result["status"] == "success":
+                    st.success(
+                        f"Indexed {result['pages']} pages "
+                        f"and {result['chunks']} chunks."
+                    )
+
+                else:
+                    st.warning("Unexpected response from backend.")
 
             except requests.RequestException as error:
                 st.error(f"Upload failed: {error}")
 
-
-# HISTORIA ROZMOWY
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
 
-
-# POLE PYTANIA
 question = st.chat_input("Ask a question about your PDFs...")
 
 if question:

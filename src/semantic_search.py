@@ -1,7 +1,5 @@
 from sentence_transformers import util
 from embeddings import model, generate_embeddings
-from pdf_reader import extract_text
-from chunking import split_text
 
 def search_similar_chunks(query, chunks, embeddings, top_k=3):
     if not chunks:
@@ -34,18 +32,3 @@ def search_similar_chunks(query, chunks, embeddings, top_k=3):
         })
 
     return results
-
-if __name__ == "__main__":
-    text = extract_text("data/materialy01.pdf")
-    chunks = split_text(text)
-    embeddings = generate_embeddings(chunks)
-
-    query = "Jak obliczyć prędkość chwilową ciała?"
-
-    results = search_similar_chunks(query, chunks, embeddings)
-
-    for result in results:
-        print(f"\nFragment: {result['chunk_id']}")
-        print(f"Similarity: {result['score']:.4f}")
-        print(result["text"])
-        print("-" * 60)

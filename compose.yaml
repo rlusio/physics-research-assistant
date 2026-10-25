@@ -6,12 +6,13 @@ services:
     ports:
       - "127.0.0.1:8000:8000"
     environment:
-      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_URL: http://ollama:11434
       HF_HOME: /app/model_cache
     volumes:
       - ./data:/app/data
       - ./chroma_db:/app/chroma_db
       - huggingface_data:/app/model_cache
+      - ./tests:/app/tests
     depends_on:
       - ollama
 
