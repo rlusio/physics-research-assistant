@@ -62,5 +62,3 @@ def add_chunks(collection, chunks, embeddings, document_id):
         metadatas=metadatas,
         embeddings=embeddings.tolist()
     )
-
-    
