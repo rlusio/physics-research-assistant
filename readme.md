@@ -1,6 +1,6 @@
 ## Demo
 
-![Physics Research Assistant](app_ss.png)
+![Physics Research Assistant](screenshots/app_ss.png)
 
 # Physics Research Assistant
 
