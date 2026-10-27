@@ -89,9 +89,15 @@ def search_database(query, top_k=3):
 
     keyword_matches.sort(key=lambda item: item[0], reverse=True)
 
+
     # 3. Łączenie wyników bez duplikatów
     combined = []
     seen = set()
+
+    semantic_distances = {
+        (match["document"], match["page"], match["text"]): match["distance"]
+        for match in semantic_matches
+    }
 
     for match in (
         [item[1] for item in keyword_matches]
@@ -101,7 +107,11 @@ def search_database(query, top_k=3):
 
         if key not in seen:
             seen.add(key)
-            combined.append(match)
+
+            combined.append({
+                **match,
+                "distance": semantic_distances.get(key)
+            })
 
         if len(combined) >= top_k:
             break

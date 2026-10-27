@@ -1,3 +1,7 @@
+## Demo
+
+![Physics Research Assistant](screenshots/demo.png)
+
 # Physics Research Assistant
 
 A simple RAG (Retrieval-Augmented Generation) application for asking questions about scientific PDF documents.
@@ -9,9 +13,9 @@ I built this project to learn how to combine LLMs, vector databases and Python A
 - Upload and process PDF documents
 - Split extracted text into smaller chunks
 - Generate embeddings and store them in ChromaDB
-- Search for relevant fragments using semantic similarity
+- Search for relevant fragments using semantic similarity and keyword matching
 - Generate answers with a local LLM (Llama 3.2)
-- Display source documents and page numbers
+- Display retrieved source fragments, document names and page numbers
 - Avoid indexing the same PDF multiple times
 
 ## Technologies
@@ -31,9 +35,11 @@ I built this project to learn how to combine LLMs, vector databases and Python A
 1. The user uploads a PDF document.
 2. The application extracts text and splits it into chunks.
 3. Each chunk is converted into an embedding and stored in ChromaDB.
-4. When a question is submitted, the application searches for similar chunks.
-5. The retrieved fragments are passed to Llama 3.2 as context.
+4. When a question is submitted, the application searches for relevant chunks using semantic similarity and keyword matching.
+5. The results are combined, duplicates are removed and the selected fragments are passed to Llama 3.2 as context.
 6. The generated answer and retrieved sources are displayed in Streamlit.
+
+The retrieval process uses a simple hybrid approach. Semantic search finds fragments with similar meaning, while keyword matching helps identify specific terms and scientific names.
 
 ## Running the project
 
@@ -65,14 +71,33 @@ Open the application:
 
 The first startup may take some time because the embedding model needs to be downloaded.
 
+For later startups, run:
+
+```bash
+docker compose up -d
+```
+
 ## Testing
 
-The project includes unit tests for the API, text chunking, vector store operations and RAG pipeline.
+The project includes 28 automated tests covering the API, text chunking, vector store operations, retrieval logic and RAG pipeline.
 
-Tests are written using `pytest`, with mocks for external components. GitHub Actions is used to run tests automatically.
+Tests use `pytest` and mocks for external components, so they do not require running the language model.
+
+Run the tests with:
+
+```bash
+docker compose exec backend python -m pytest -v tests/
+```
+
+GitHub Actions is configured to run tests automatically.
 
 ## Limitations and future improvements
 
-The application is currently intended for local use.
+This project is an MVP intended for local use and learning purposes.
 
-Some possible improvements include better handling of mathematical formulas in PDFs, improving retrieval quality and adding more tests for the complete RAG workflow.
+- The retrieval system uses simple keyword matching and may not always select the most relevant fragments.
+- Keyword search currently scans the stored chunks, so it is not optimized for large document collections.
+- Mathematical formulas and complex PDF layouts may not be extracted correctly.
+- LLM-generated answers may contain errors or unsupported information, so the original sources should be checked.
+
+Possible future improvements include BM25-based retrieval, reranking, better handling of mathematical formulas and evaluating different language models.

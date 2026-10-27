@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir --timeout 120 --retries 10 \
 RUN pip install --no-cache-dir --timeout 120 --retries 10 \
     -r requirements-backend.txt
 
+COPY requirements-dev.txt .
+
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
 COPY src/ ./src/
 
 EXPOSE 8000
