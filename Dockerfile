@@ -8,7 +8,11 @@ RUN apt-get update && \
 
 COPY requirements-backend.txt .
 
-RUN pip install --no-cache-dir -r requirements-backend.txt
+RUN pip install --no-cache-dir --timeout 120 --retries 10 \
+    torch --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir --timeout 120 --retries 10 \
+    -r requirements-backend.txt
 
 COPY src/ ./src/
 
