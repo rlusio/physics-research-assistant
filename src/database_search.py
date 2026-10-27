@@ -60,7 +60,6 @@ def search_database(query, top_k=3):
             "distance": distance
         })
 
-    # 2. Proste wyszukiwanie słów kluczowych
     query_words = tokenize(query)
 
     data = collection.get(
@@ -89,8 +88,6 @@ def search_database(query, top_k=3):
 
     keyword_matches.sort(key=lambda item: item[0], reverse=True)
 
-
-    # 3. Łączenie wyników bez duplikatów
     combined = []
     seen = set()
 

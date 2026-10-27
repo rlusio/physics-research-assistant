@@ -1,5 +1,8 @@
 ﻿import pymupdf
 import re
+import logging
+
+logger = logging.getLogger(__name__)
 
 def extract_pages(pdf_path):
     pages = []
@@ -18,15 +21,15 @@ def extract_pages(pdf_path):
         return pages
 
     except pymupdf.FileNotFoundError:
-        print("Plik nie istnieje.")
+        logger.error("Plik nie istnieje: %s", pdf_path)
         return []
 
     except pymupdf.EmptyFileError:
-        print("Plik jest pusty.")
+        logger.warning("Plik jest pusty: %s", pdf_path)
         return []
 
     except pymupdf.FileDataError:
-        print("Nieprawidłowy lub uszkodzony PDF.")
+        logger.error("Nieprawidłowy lub uszkodzony PDF: %s", pdf_path)
         return []
 
 def clean_text(text):
