@@ -16,7 +16,7 @@ I built this project to learn how to combine LLMs, vector databases and Python A
 - Search for relevant fragments using semantic similarity and keyword matching
 - Generate answers with a local LLM (Llama 3.2)
 - Display retrieved source fragments, document names and page numbers
-- Avoid indexing the same PDF multiple times
+- Prevent duplicate PDF indexing
 
 ## Technologies
 
@@ -39,11 +39,11 @@ I built this project to learn how to combine LLMs, vector databases and Python A
 5. The results are combined, duplicates are removed and the selected fragments are passed to Llama 3.2 as context.
 6. The generated answer and retrieved sources are displayed in Streamlit.
 
-The retrieval process uses a simple hybrid approach. Semantic search finds fragments with similar meaning, while keyword matching helps identify specific terms and scientific names.
+Semantic search finds fragments with similar meaning, while keyword matching helps identify specific terms and scientific names.
 
 ## Running the project
 
-Docker and Docker Compose are required.
+Docker Desktop is required.
 
 Clone the repository:
 
@@ -67,7 +67,7 @@ docker compose exec ollama ollama pull llama3.2
 Open the application:
 
 - Streamlit: http://localhost:8501
-- FastAPI documentation: http://localhost:8000/docs
+- FastAPI documentation: http://localhost:8000docs/
 
 The first startup may take some time because the embedding model needs to be downloaded.
 
@@ -100,4 +100,4 @@ This project is an MVP intended for local use and learning purposes.
 - Mathematical formulas and complex PDF layouts may not be extracted correctly.
 - LLM-generated answers may contain errors or unsupported information, so the original sources should be checked.
 
-Possible future improvements include BM25-based retrieval, reranking, better handling of mathematical formulas and evaluating different language models.
+Possible future improvements include more advanced document search methods, better handling of mathematical formulas in PDFs, and experimenting with different language models.
